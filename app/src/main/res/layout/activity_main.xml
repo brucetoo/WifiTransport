@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/btn_search"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:onClick="searchForPeers"
+        android:text="Search"
+        />
+
+    <fragment
+        android:id="@+id/frag_list"
+        class="com.brucetoo.wifitransport.DeviceListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="200dp">
+        <!-- Preview: layout=@layout/row_devices -->
+    </fragment>
+
+    <fragment
+        android:id="@+id/frag_detail"
+        class="com.brucetoo.wifitransport.DeviceDetailFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <!-- Preview: layout=@layout/fragment_device_detail -->
+    </fragment>
+</LinearLayout>
