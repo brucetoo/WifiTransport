@@ -42,6 +42,11 @@
         </activity>
 
         <service
+            android:name=".HotPot.UploadService"
+            android:exported="false"/>
+
+
+        <service
             android:name=".HotPot.ReceiveService"
             android:exported="false"/>
 

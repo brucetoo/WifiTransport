@@ -73,7 +73,7 @@ public class ReceiveService extends IntentService {
                 }
                 Log.i(TAG, "File receive complete, saved as: " + savedAs);
 
-//                setResult(RECEIVE_SUCCESS);//call this in while(true) has problem
+                setResult(RECEIVE_SUCCESS);//call this in while(true) has problem
 
             }
 

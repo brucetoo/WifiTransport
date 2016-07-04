@@ -77,14 +77,29 @@ public class HotpotActivity extends Activity {
         mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
         initWifiList();
         registerReceiver();
-        startReceiveService();
+//        startReceiveService();
     }
 
+    /**
+     * For test c2s situation
+     */
     private void startReceiveService() {
         Intent intent = new Intent(this, ReceiveService.class);
         intent.putExtra(ReceiveService.INTENT_RECEIVER_RESULT, mReceiveResult);
-        startService(new Intent(this, ReceiveService.class));
+        startService(intent);
     }
+
+
+    /**
+     * For test download file in browser.
+     * @see HotpotActivity#mFinishScannerListener
+     */
+    private void startUploadService(String serverIp) {
+        Intent intent = new Intent(this, UploadService.class);
+        intent.putExtra(UploadService.SERVER_IP,serverIp);
+        startService(intent);
+    }
+
 
 
     private void registerReceiver() {
@@ -208,7 +223,7 @@ public class HotpotActivity extends Activity {
             if (clients.size() != 0) {
                 mProgressBar.setVisibility(View.GONE);
                 mClientAdapter.replaceAll(clients);
-
+                startUploadService(clients.get(0).getIpAddr());
                 //TODO ? if client device is not empty,stop mCheckWifiClientRunnable
                 mHandler.removeCallbacks(mCheckWifiClientRunnable);
             }
