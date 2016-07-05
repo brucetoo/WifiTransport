@@ -75,7 +75,7 @@ public class HotpotActivity extends Activity {
         mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
         initWifiList();
         registerReceiver();
-        startReceiveService();
+//        startReceiveService();
     }
 
     /**
@@ -200,7 +200,7 @@ public class HotpotActivity extends Activity {
             if (clients.size() != 0) {
                 mProgressBar.setVisibility(View.GONE);
                 mClientAdapter.replaceAll(clients);
-//                startUploadService(clients.get(0).getIpAddr());
+                startUploadService(clients.get(0).getIpAddr());
                 //TODO ? if client device is not empty,stop mCheckWifiClientRunnable
                 mHandler.removeCallbacks(mCheckWifiClientRunnable);
             }

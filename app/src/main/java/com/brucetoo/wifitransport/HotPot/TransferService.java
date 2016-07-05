@@ -51,10 +51,36 @@ public class TransferService extends IntentService {
         OutputStream out = null;
         InputStream in = null;
 
+        clientSocket = new Socket();
+        boolean isPortEnable = false;
+        int finalPort = WifiManagerUtils.SERVER_CONNECT_PORT;
+        int retryCount = 1;
+
+
+        //retry 5 times connect to server
+        while (!isPortEnable && retryCount <= WifiManagerUtils.RETRY_COUNT) {
+            try {
+                /**
+                 * If {@code localAddr} is set to {@code null},
+                 * this socket will be bound to an available local address on
+                 * any free port.
+                 */
+                clientSocket.bind(null);
+                //TIME_OUT the connection is refused or server doesn't exist.
+                clientSocket.connect((new InetSocketAddress(serverIp, finalPort)), TIME_OUT);
+            } catch (IOException e) {
+                finalPort += WifiManagerUtils.SERVER_PORT_RETRY_OFFSET;//if the port is not available,add 6 until ok
+                if (retryCount++ > WifiManagerUtils.RETRY_COUNT) {
+                    //connect server error
+                    return;
+                }
+                e.printStackTrace();
+            }
+        }
+
+        //connect to server successfully
         try {
-            clientSocket = new Socket();
-            clientSocket.bind(null);
-            clientSocket.connect((new InetSocketAddress(serverIp, WifiManagerUtils.SERVER_CONNECT_PORT)), TIME_OUT);
+
             out = clientSocket.getOutputStream();
 
             Log.i(TAG, "Start send file: " + fileToSend);

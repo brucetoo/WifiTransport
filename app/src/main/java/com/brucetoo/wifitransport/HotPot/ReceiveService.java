@@ -49,15 +49,34 @@ public class ReceiveService extends IntentService {
         Socket socket = null;
         InputStream in = null;
         OutputStream out = null;
+        boolean isPortEnable = false;
+        int finalPort = WifiManagerUtils.SERVER_CONNECT_PORT;
+        int retryCount = 1;
 
+        //check the port first,and retry count <= 5
+        while (!isPortEnable && retryCount <= WifiManagerUtils.RETRY_COUNT) {
+            try {
+                serverSocket = new ServerSocket(finalPort);
+                isPortEnable = true;
+            } catch (IOException e) {
+                finalPort += WifiManagerUtils.SERVER_PORT_RETRY_OFFSET;//if the port is not available,add 6 until ok
+                if (retryCount++ > WifiManagerUtils.RETRY_COUNT) {
+                    //create ServerSocket error
+                    return;
+                }
+                e.printStackTrace();
+            }
+        }
+
+        //create ServerSocket successfully
         try {
-            serverSocket = new ServerSocket(WifiManagerUtils.SERVER_CONNECT_PORT);
             while (true) {
                 //block until client connect
                 Log.i(TAG, "Wait for client to connect...");
                 socket = serverSocket.accept();
                 Log.i(TAG, "Start receive file...");
 
+                //create a template file,when receive over,copy it to destination
                 String savedAs = "/WIFI_" + System.currentTimeMillis();
                 File file = new File(LOCATION, savedAs);
 
@@ -72,11 +91,10 @@ public class ReceiveService extends IntentService {
                 }
                 Log.i(TAG, "File receive complete, saved as: " + savedAs);
 
-                setResult(RECEIVE_SUCCESS);//call this in while(true) has problem
-
+                setResult(RECEIVE_SUCCESS);
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             Log.i(TAG, e.getMessage());
             setResult(RECEIVE_FAILED);

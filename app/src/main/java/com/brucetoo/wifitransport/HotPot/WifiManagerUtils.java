@@ -48,10 +48,21 @@ public class WifiManagerUtils {
      * Wifi ap server port use in {@link UploadService}
      */
     public static final int SERVER_UPLOAD_PORT = 7879;
+
+    /**
+     * Wifi ap server port retry offset
+     */
+    public static final int SERVER_PORT_RETRY_OFFSET = 10;
+
     /**
      * Request code of  ACCESS_COARSE_LOCATION permission
      */
     public static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 10001;
+
+    /**
+     * Create or connect server retry count
+     */
+    public static final int RETRY_COUNT = 5;
 
 
     /**
