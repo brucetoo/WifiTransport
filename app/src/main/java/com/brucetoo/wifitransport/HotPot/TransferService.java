@@ -8,7 +8,12 @@ import android.os.ResultReceiver;
 import android.util.Log;
 import android.view.View;
 
+import com.brucetoo.wifitransport.WifiMsg;
+import com.brucetoo.wifitransport.materialfilepicker.utils.FileTypeUtils;
+import com.google.protobuf.ByteString;
+
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +73,7 @@ public class TransferService extends IntentService {
                 clientSocket.bind(null);
                 //TIME_OUT the connection is refused or server doesn't exist.
                 clientSocket.connect((new InetSocketAddress(serverIp, finalPort)), TIME_OUT);
+                isPortEnable = true;
             } catch (IOException e) {
                 finalPort += WifiManagerUtils.SERVER_PORT_RETRY_OFFSET;//if the port is not available,add 6 until ok
                 if (retryCount++ > WifiManagerUtils.RETRY_COUNT) {
@@ -85,13 +91,15 @@ public class TransferService extends IntentService {
 
             Log.i(TAG, "Start send file: " + fileToSend);
 
-            byte[] buffer = new byte[4096];
+            File file = new File(fileToSend);
             in = new BufferedInputStream(new FileInputStream(fileToSend));
-            int count;
-            while ((count = in.read(buffer)) != -1) {
-                out.write(buffer, 0, count);
-                out.flush();
-            }
+            WifiMsg.WifiData wifiData = WifiMsg.WifiData.newBuilder()
+                    .setId(1)
+                    .setSuffix(FileTypeUtils.getExtension(file.getName()))
+                    .setFileSize(file.getTotalSpace())
+                    .setData(ByteString.readFrom(in))
+                    .build();
+            wifiData.writeTo(out);
 
             Log.i(TAG, "File send complete, sent file: " + fileToSend);
             setResult(ReceiveService.RECEIVE_SUCCESS);
@@ -99,7 +107,7 @@ public class TransferService extends IntentService {
             Log.i(TAG, e.getMessage());
             setResult(ReceiveService.RECEIVE_FAILED);
         } finally {
-            Utils.closeSilently(in,out,clientSocket);
+            Utils.closeSilently(in, out, clientSocket);
         }
 
     }

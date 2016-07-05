@@ -7,7 +7,8 @@ import android.os.Environment;
 import android.os.ResultReceiver;
 import android.util.Log;
 
-import java.io.BufferedOutputStream;
+import com.brucetoo.wifitransport.WifiMsg;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -77,18 +78,18 @@ public class ReceiveService extends IntentService {
                 Log.i(TAG, "Start receive file...");
 
                 //create a template file,when receive over,copy it to destination
-                String savedAs = "/WIFI_" + System.currentTimeMillis();
-                File file = new File(LOCATION, savedAs);
+                String savedAs = "/WIFI_TEMPLATE_FILE";
 
-                byte[] buffer = new byte[4096];
                 in = socket.getInputStream();
-                out = new BufferedOutputStream(new FileOutputStream(file));
-                //read bytes
-                int count;
-                while ((count = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, count);
-                    out.flush();
-                }
+                WifiMsg.WifiData.Builder builder = WifiMsg.WifiData.newBuilder().mergeFrom(in);
+                String suffix = builder.getSuffix();
+                Log.i(TAG, "File suffix: " + suffix);
+                long fileSize = builder.getFileSize();
+                Log.i(TAG, "File fileSize: " + fileSize);
+                InputStream input = builder.getData().newInput();
+                savedAs = savedAs + "." + suffix;
+                File file = new File(LOCATION, savedAs);
+                copy(input, file);
                 Log.i(TAG, "File receive complete, saved as: " + savedAs);
 
                 setResult(RECEIVE_SUCCESS);
@@ -117,6 +118,17 @@ public class ReceiveService extends IntentService {
         bundle.putInt(BUNDLE_RECEIVE_STATE, state);
         if (mServerResult != null)
             mServerResult.send(WifiManagerUtils.SERVER_CONNECT_PORT, bundle);
+    }
+
+    public void copy(InputStream in, File file) throws IOException {
+        OutputStream out = new FileOutputStream(file);
+        byte[] buf = new byte[4096];
+        int len;
+        while ((len = in.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+        in.close();
+        out.close();
     }
 
 }
