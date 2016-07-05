@@ -64,6 +64,11 @@ public class WifiManagerUtils {
      */
     public static final int RETRY_COUNT = 5;
 
+    /**
+     * Perfect buffer size for file system
+     */
+    public static final int PERFECT_BUFFER_SIZE = 4096;
+
 
     /**
      * Check if wifi ap is enable

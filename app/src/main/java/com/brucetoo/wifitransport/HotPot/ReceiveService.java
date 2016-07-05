@@ -122,7 +122,7 @@ public class ReceiveService extends IntentService {
 
     public void copy(InputStream in, File file) throws IOException {
         OutputStream out = new FileOutputStream(file);
-        byte[] buf = new byte[4096];
+        byte[] buf = new byte[WifiManagerUtils.PERFECT_BUFFER_SIZE];
         int len;
         while ((len = in.read(buf)) > 0) {
             out.write(buf, 0, len);

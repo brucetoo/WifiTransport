@@ -56,9 +56,8 @@ public class UploadService extends IntentService {
 
     class UploadFileThread extends Thread {
 
-        private static final int BUFFER_SIZE = 4096;
         private Socket socket;
-        private byte[] buf = new byte[BUFFER_SIZE];
+        private byte[] buf = new byte[WifiManagerUtils.PERFECT_BUFFER_SIZE];
         private OutputStream out;
         private InputStream in;
         private String fileToSend;
@@ -73,7 +72,7 @@ public class UploadService extends IntentService {
             try {
                 out = socket.getOutputStream();
                 in = socket.getInputStream();
-                numberRead = in.read(buf, 0, BUFFER_SIZE);
+                numberRead = in.read(buf, 0, WifiManagerUtils.PERFECT_BUFFER_SIZE);
                 Log.i(TAG, "request read size:" + numberRead);
 
                 //no request at all
@@ -103,7 +102,7 @@ public class UploadService extends IntentService {
 
     public void copy(File src, OutputStream out) throws IOException {
         InputStream in = new FileInputStream(src);
-        byte[] buf = new byte[4096];
+        byte[] buf = new byte[WifiManagerUtils.PERFECT_BUFFER_SIZE];
         int len;
         while ((len = in.read(buf)) > 0) {
             out.write(buf, 0, len);
