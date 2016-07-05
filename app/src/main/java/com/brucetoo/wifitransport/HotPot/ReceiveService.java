@@ -26,7 +26,6 @@ import java.net.Socket;
  */
 public class ReceiveService extends IntentService {
 
-    public static final int PORT = 7878;
     public static final String LOCATION = Environment.getExternalStorageDirectory().getAbsolutePath();
     private static final String TAG = "ReceiveService";
     public static final String INTENT_RECEIVER_RESULT = "receiver_result";
@@ -52,7 +51,7 @@ public class ReceiveService extends IntentService {
         OutputStream out = null;
 
         try {
-            serverSocket = new ServerSocket(PORT);
+            serverSocket = new ServerSocket(WifiManagerUtils.SERVER_CONNECT_PORT);
             while (true) {
                 //block until client connect
                 Log.i(TAG, "Wait for client to connect...");
@@ -107,7 +106,7 @@ public class ReceiveService extends IntentService {
         Bundle bundle = new Bundle();
         bundle.putInt(BUNDLE_RECEIVE_STATE, state);
         if (mServerResult != null)
-            mServerResult.send(PORT, bundle);
+            mServerResult.send(WifiManagerUtils.SERVER_CONNECT_PORT, bundle);
     }
 
 }

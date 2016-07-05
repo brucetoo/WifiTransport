@@ -54,7 +54,7 @@ public class TransferService extends IntentService {
         try {
             clientSocket = new Socket();
             clientSocket.bind(null);
-            clientSocket.connect((new InetSocketAddress(serverIp, ReceiveService.PORT)), TIME_OUT);
+            clientSocket.connect((new InetSocketAddress(serverIp, WifiManagerUtils.SERVER_CONNECT_PORT)), TIME_OUT);
             out = clientSocket.getOutputStream();
 
             Log.i(TAG, "Start send file: " + fileToSend);
@@ -95,7 +95,7 @@ public class TransferService extends IntentService {
     private void setResult(int state) {
         Bundle bundle = new Bundle();
         bundle.putInt(ReceiveService.BUNDLE_RECEIVE_STATE, state);
-        mSendResult.send(ReceiveService.PORT, bundle);
+        mSendResult.send(WifiManagerUtils.SERVER_CONNECT_PORT, bundle);
     }
 
 }

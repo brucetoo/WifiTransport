@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * Scan the file "/proc/net/arp" in android,
  * and this is callback listener
  *
- * @see WifiUtils#getHotspotClientList(Context, boolean, int, ScanFinishListener)
+ * @see WifiManagerUtils#getWifiApClientList(Context, boolean, int, ScanFinishListener)
  */
 public interface ScanFinishListener {
 

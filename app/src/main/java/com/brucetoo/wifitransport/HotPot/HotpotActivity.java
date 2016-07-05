@@ -15,8 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
-import android.provider.Settings;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -30,9 +28,13 @@ import com.brucetoo.wifitransport.materialfilepicker.MaterialFilePicker;
 import com.brucetoo.wifitransport.materialfilepicker.ui.FilePickerActivity;
 import com.joanzapata.android.BaseAdapterHelper;
 import com.joanzapata.android.QuickAdapter;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -44,11 +46,7 @@ import java.util.regex.Pattern;
 public class HotpotActivity extends Activity {
 
     public static final String TAG = "hots_pot";
-    public static final String SERVER_IP = "192.168.43.1";
     public static final int FILE_REQUEST_ID = 1000;
-    private static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 100;
-    //this intent not exist at all
-    private static final String ACTION_WIFI_HOTSPOT_CHANGED = "android.net.wifi.WIFI_HOTSPOT_CLIENTS_CHANGED";
     private ListView mListWifi;
     private ListView mListClient;
     private ProgressBar mProgressBar;
@@ -77,7 +75,7 @@ public class HotpotActivity extends Activity {
         mWifiManger = (WifiManager) getSystemService(WIFI_SERVICE);
         initWifiList();
         registerReceiver();
-//        startReceiveService();
+        startReceiveService();
     }
 
     /**
@@ -92,14 +90,14 @@ public class HotpotActivity extends Activity {
 
     /**
      * For test download file in browser.
+     *
      * @see HotpotActivity#mFinishScannerListener
      */
     private void startUploadService(String serverIp) {
         Intent intent = new Intent(this, UploadService.class);
-        intent.putExtra(UploadService.SERVER_IP,serverIp);
+        intent.putExtra(UploadService.SERVER_IP, serverIp);
         startService(intent);
     }
-
 
 
     private void registerReceiver() {
@@ -108,7 +106,6 @@ public class HotpotActivity extends Activity {
         filter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        filter.addAction(ACTION_WIFI_HOTSPOT_CHANGED);
         registerReceiver(mWifiReceiver, filter);
     }
 
@@ -124,8 +121,7 @@ public class HotpotActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ScanResult item = mWifiAdapter.getItem(position);
-                //TODO add a edit text to input password
-                WifiUtils.connectWiFi(mWifiManger, item);
+                WifiManagerUtils.connectToWiFiAp(HotpotActivity.this, item, "");
             }
         });
 
@@ -159,57 +155,38 @@ public class HotpotActivity extends Activity {
         mListStatus.setText("Connected Client list,Click to send file:");
         mProgressBar.setVisibility(View.VISIBLE);
 
-        boolean isCreateSuccess = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.System.canWrite(this)) {
-                startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS));
-            } else {
-                isCreateSuccess = WifiUtils.createWifiAp(mWifiManger, "brucetoo", "");
-            }
-        } else {
-            isCreateSuccess = WifiUtils.createWifiAp(mWifiManger, "brucetoo", "");
-        }
-
+        boolean isCreateSuccess = WifiManagerUtils.createWifiAp(this, "brucetoo", "");
         if (isCreateSuccess) {
             Log.i(TAG, "create wifi app successful");
             mHandler.postDelayed(mCheckWifiClientRunnable, 1000);
         }
     }
 
-    /**
-     * if sdk >= 23 we need ACCESS_COARSE_LOCATION permission
-     */
+
     public void onScanWifi(View view) {
 
         mListClient.setVisibility(View.GONE);
         mListWifi.setVisibility(View.VISIBLE);
         mListStatus.setText("Wifi Hotspot list,choose one to connect:");
         mProgressBar.setVisibility(View.VISIBLE);
+        WifiManagerUtils.checkAndScanWifiList(this);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
-        } else {
-            Log.i(TAG, "SDK_INT < 22 start scan wifi list");
-            WifiUtils.startScanWifiList(mWifiManger);
-        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
-        if (requestCode == PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION
+        if (requestCode == WifiManagerUtils.PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.i(TAG, "SDK_INT >= 22 start scan wifi list");
-            WifiUtils.startScanWifiList(mWifiManger);
+            WifiManagerUtils.startScanWifiList(this);
         }
     }
 
     private Runnable mCheckWifiClientRunnable = new Runnable() {
         @Override
         public void run() {
-            //TODO do not need start a thread every time
-            WifiUtils.getHotspotClientList(HotpotActivity.this, true, mFinishScannerListener);
+            WifiManagerUtils.getWifiApClientList(HotpotActivity.this, true, mFinishScannerListener);
             mHandler.postDelayed(this, 2000);//wait 2 sec to scan again
         }
     };
@@ -223,7 +200,7 @@ public class HotpotActivity extends Activity {
             if (clients.size() != 0) {
                 mProgressBar.setVisibility(View.GONE);
                 mClientAdapter.replaceAll(clients);
-                startUploadService(clients.get(0).getIpAddr());
+//                startUploadService(clients.get(0).getIpAddr());
                 //TODO ? if client device is not empty,stop mCheckWifiClientRunnable
                 mHandler.removeCallbacks(mCheckWifiClientRunnable);
             }
@@ -232,37 +209,39 @@ public class HotpotActivity extends Activity {
 
     public void browseFile(View view) {
 
-        new MaterialFilePicker()
-                .withActivity(this)
-                .withRequestCode(FILE_REQUEST_ID)
-                .withFilter(Pattern.compile(".*txt")) // Filtering files and directories by file name using regexp
-                .withFilterDirectories(true) // Set directories filterable (false by default)
-                .withHiddenFiles(false) // Show hidden files and folders
-                .start();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            Dexter.checkPermissions(new MultiplePermissionsListener() {
+                @Override
+                public void onPermissionsChecked(MultiplePermissionsReport report) {
+                    if (report.areAllPermissionsGranted()) {
+                        new MaterialFilePicker()
+                                .withActivity(HotpotActivity.this)
+                                .withRequestCode(FILE_REQUEST_ID)
+                                .withFilter(Pattern.compile(".*txt")) // Filtering files and directories by file name using regexp
+                                .withFilterDirectories(true) // Set directories filterable (false by default)
+                                .withHiddenFiles(false) // Show hidden files and folders
+                                .start();
+                    }
+                }
+
+                @Override
+                public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+
+                }
+            }, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
     }
 
     //send file client 2 service
     public void sendFile(View view) {
-        checkAndSendFile(SERVER_IP);
+        WifiManagerUtils.checkAndSendFile(this, WifiManagerUtils.SERVER_IP, mFile2Send, mSendResult);
     }
 
     //send file service 2 client
     public void sendFile(ClientScanResult item) {
-        checkAndSendFile(item.getIpAddr());
+        WifiManagerUtils.checkAndSendFile(this, item.getIpAddr(), mFile2Send, mSendResult);
     }
 
-    private void checkAndSendFile(String ip) {
-        if (!TextUtils.isEmpty(mFile2Send)) {
-            Intent serviceIntent = new Intent(this, TransferService.class);
-            serviceIntent.putExtra(TransferService.INTENT_SERVER_IP, ip);//server ip
-            serviceIntent.putExtra(TransferService.INTENT_SERVER_PORT, ReceiveService.PORT);
-            serviceIntent.putExtra(TransferService.INTENT_FILE_TO_SEND, mFile2Send);
-            serviceIntent.putExtra(TransferService.INTENT_SEND_RESULT, mSendResult);
-            startService(serviceIntent);
-        } else {
-            Toast.makeText(HotpotActivity.this, "No file is chose!", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -286,20 +265,22 @@ public class HotpotActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(action)) {//scan wifi
+            if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(action)) {
+                //Handle wifi scan result
                 Log.i(TAG, "WifiReceiver -> receive list size:" + mWifiManger.getScanResults().size());
                 mProgressBar.setVisibility(View.GONE);
                 if (mWifiAdapter != null) {
-                    mWifiAdapter.replaceAll(removeDuplicate(mWifiManger.getScanResults()));
+                    mWifiAdapter.replaceAll(WifiManagerUtils.removeDuplicateWifiAp(mWifiManger.getScanResults()));
                 }
             } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {//wifi connect state
+                //Handle wifi connect state
                 NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
                 Log.i(TAG, "WifiReceiver -> receive net info: " + info.getState());
                 switch (info.getState()) {
                     case CONNECTED:
                         //get connect wifi info
                         WifiInfo wifiInfo = mWifiManger.getConnectionInfo();
-                        Log.i(TAG, "WifiReceiver -> Connect Ip: " + WifiUtils.formatIpAddress(wifiInfo.getIpAddress()));
+                        Log.i(TAG, "WifiReceiver -> Connect Ip: " + WifiManagerUtils.formatIpAddress(wifiInfo.getIpAddress()));
                         Toast.makeText(context, "Connected " + wifiInfo.getSSID(), Toast.LENGTH_SHORT).show();
                         break;
                     case CONNECTING:
@@ -318,7 +299,8 @@ public class HotpotActivity extends Activity {
 
                         break;
                 }
-            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {//listen wifi open or not
+            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
+                //Handle wifi open or not
                 int wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, 0);
                 Log.i(TAG, "WifiReceiver -> wifi State:" + wifiState);
                 switch (wifiState) {
@@ -338,47 +320,15 @@ public class HotpotActivity extends Activity {
                         break;
                 }
 
-            } else if (action.equals(ACTION_WIFI_HOTSPOT_CHANGED)) {//this doesn't wok at all
-
-                Log.i(TAG, "WifiReceiver -> A client connect...");
             }
         }
-    }
-
-    private List<ScanResult> removeDuplicate(List<ScanResult> scanResults) {
-        List<ScanResult> results = new ArrayList<>();
-        HashMap<String, Integer> signalStrength = new HashMap<String, Integer>();
-        try {
-            for (int i = 0; i < scanResults.size(); i++) {
-                ScanResult result = scanResults.get(i);
-                if (!result.SSID.isEmpty()) {
-                    String key = result.SSID;
-                    if (!signalStrength.containsKey(key)) {
-                        results.add(result);
-                        signalStrength.put(key, results.size() - 1);
-                    } else {
-                        int position = signalStrength.get(key);
-                        ScanResult updateItem = results.get(position);
-                        if (updateItem.level < result.level) {
-                            results.set(position, updateItem);
-                        }
-                    }
-                }
-            }
-
-            return results;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     private ResultReceiver mReceiveResult = new ResultReceiver(null) {
         @Override
         protected void onReceiveResult(final int resultCode, final Bundle resultData) {
 
-            if (resultCode == ReceiveService.PORT) {
+            if (resultCode == WifiManagerUtils.SERVER_CONNECT_PORT) {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -397,7 +347,7 @@ public class HotpotActivity extends Activity {
         @Override
         protected void onReceiveResult(final int resultCode, final Bundle resultData) {
 
-            if (resultCode == ReceiveService.PORT) {
+            if (resultCode == WifiManagerUtils.SERVER_CONNECT_PORT) {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {

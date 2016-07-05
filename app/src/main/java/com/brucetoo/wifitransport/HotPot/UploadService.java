@@ -17,10 +17,11 @@ import java.net.SocketException;
  * Created by Bruce Too
  * On 6/30/16.
  * At 16:29
+ * Wait a client to connect,and handle response be
+ * like http response. Send file to browser that can be download
  */
 public class UploadService extends IntentService {
 
-    public static final int PORT = 7878;
     private static final String TAG = "UploadService";
     public static final String SERVER_IP = "server_ip";
 
@@ -35,7 +36,7 @@ public class UploadService extends IntentService {
         Socket socket = null;
 
         try {
-            serverSocket = new ServerSocket(PORT);
+            serverSocket = new ServerSocket(WifiManagerUtils.SERVER_UPLOAD_PORT);
             while (true) {
                 //block until client connect
                 Log.i(TAG, "Wait for client to connect...");
