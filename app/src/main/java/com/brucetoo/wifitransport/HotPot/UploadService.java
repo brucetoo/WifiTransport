@@ -91,11 +91,26 @@ public class UploadService extends IntentService {
                 copy(file, out);
                 Log.i(TAG, "File upload completed!");
 
+                is.close();
                 socket.close();
             } catch (SocketException e) {
                 System.out.println(e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    if (socket != null) {
+                        socket.close();
+                    }
+                    if (is != null) {
+                        is.close();
+                    }
+                    if (out != null) {
+                        out.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
