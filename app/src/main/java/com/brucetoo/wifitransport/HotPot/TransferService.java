@@ -99,21 +99,7 @@ public class TransferService extends IntentService {
             Log.i(TAG, e.getMessage());
             setResult(ReceiveService.RECEIVE_FAILED);
         } finally {
-            try {
-                if (clientSocket != null) {
-                    if (clientSocket.isConnected()) {
-                        clientSocket.close();
-                    }
-                }
-                if (in != null) {
-                    in.close();
-                }
-                if (out != null) {
-                    out.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Utils.closeSilently(in,out,clientSocket);
         }
 
     }

@@ -60,7 +60,7 @@ public class UploadService extends IntentService {
         private Socket socket;
         private byte[] buf = new byte[BUFFER_SIZE];
         private OutputStream out;
-        private InputStream is;
+        private InputStream in;
         private String fileToSend;
 
         public UploadFileThread(Socket socket, String fileToSend) {
@@ -72,8 +72,8 @@ public class UploadService extends IntentService {
             int numberRead = 0;
             try {
                 out = socket.getOutputStream();
-                is = socket.getInputStream();
-                numberRead = is.read(buf, 0, BUFFER_SIZE);
+                in = socket.getInputStream();
+                numberRead = in.read(buf, 0, BUFFER_SIZE);
                 Log.i(TAG, "request read size:" + numberRead);
 
                 //no request at all
@@ -91,26 +91,12 @@ public class UploadService extends IntentService {
                 copy(file, out);
                 Log.i(TAG, "File upload completed!");
 
-                is.close();
-                socket.close();
             } catch (SocketException e) {
                 System.out.println(e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                try {
-                    if (socket != null) {
-                        socket.close();
-                    }
-                    if (is != null) {
-                        is.close();
-                    }
-                    if (out != null) {
-                        out.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+               Utils.closeSilently(in,out,socket);
             }
         }
     }

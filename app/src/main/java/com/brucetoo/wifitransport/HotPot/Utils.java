@@ -4,6 +4,10 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +18,7 @@ import java.util.List;
  */
 public class Utils {
 
-    public static List<ApplicationInfo> getInstalledAppPathList(Context context){
+    public static List<ApplicationInfo> getInstalledAppPathList(Context context) {
 
         List<ApplicationInfo> apps = new ArrayList<>();
         final PackageManager pm = context.getPackageManager();
@@ -22,7 +26,7 @@ public class Utils {
         List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 
         for (ApplicationInfo packageInfo : packages) {
-            if((packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0){
+            if ((packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
                 apps.add(packageInfo);
 //                Log.d(TAG, "Installed package :" + packageInfo.packageName);
 //                Log.d(TAG, "Source dir : " + packageInfo.sourceDir);
@@ -30,5 +34,24 @@ public class Utils {
             }
         }
         return apps;
+    }
+
+    public static void closeSilently(InputStream in, OutputStream out, Socket socket) {
+
+        try {
+            if (socket != null) {
+                if (socket.isConnected()) {
+                    socket.close();
+                }
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -100,15 +100,7 @@ public class ReceiveService extends IntentService {
             setResult(RECEIVE_FAILED);
         } finally {
             try {
-                if (in != null) {
-                    in.close();
-                }
-                if (out != null) {
-                    out.close();
-                }
-                if (socket != null) {
-                    socket.close();
-                }
+                Utils.closeSilently(in,out,socket);
                 if (serverSocket != null) {
                     serverSocket.close();
                 }
