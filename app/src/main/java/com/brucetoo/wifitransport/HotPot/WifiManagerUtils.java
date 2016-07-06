@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -22,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +58,8 @@ public class WifiManagerUtils {
      * Request code of  ACCESS_COARSE_LOCATION permission
      */
     public static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 10001;
+
+    public static final int PERMISSIONS_REQUEST_CODE_WRITE_SETTING = 10002;
 
     /**
      * Create or connect server retry count
@@ -126,6 +128,19 @@ public class WifiManagerUtils {
     }
 
 
+    public static boolean checkAndCreateWifiAp(Activity activity,String ssid,String pass) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(activity)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                    Uri.parse("package:" + activity.getPackageName()));
+            activity.startActivityForResult(intent, WifiManagerUtils.PERMISSIONS_REQUEST_CODE_WRITE_SETTING);
+        } else {
+            return WifiManagerUtils.createWifiAp(activity, ssid, pass);
+        }
+
+        return false;
+    }
+
     /**
      * Create wifi ap by different android version
      * Need permission android.permission.WRITE_SETTINGS
@@ -138,11 +153,6 @@ public class WifiManagerUtils {
     public static boolean createWifiAp(Context context, String ssid, String pass) {
 
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.System.canWrite(context)) {
-                context.startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS));
-            }
-        }
 
         WifiConfiguration wificonfiguration = createWifiApConfig(ssid, pass);
         try {
@@ -233,6 +243,7 @@ public class WifiManagerUtils {
     public static void connectToWiFiAp(Context context, ScanResult scanResult, String password) {
 
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+
         try {
             Log.i(TAG, "Connect wifi -> SSID " + scanResult.SSID + " Security : " + scanResult.capabilities);
 
@@ -240,11 +251,16 @@ public class WifiManagerUtils {
             String networkPass = "\"" + password + "\"";
 
             WifiConfiguration conf = new WifiConfiguration();
-            //NOTE: if ssid not from ScanResult , quote must be added
-//            conf.SSID = "\"" + networkSSID + "\"";   // Please note the quotes. String should contain ssid in quote
 
-            conf.SSID = networkSSID;
-            Log.e(TAG, "connectToWiFiAp ssid :" + conf.SSID);
+            //NOTE quote must be added,or Xiao Mi cannot connecte wifi
+            if (Build.MANUFACTURER.equalsIgnoreCase("xiaomi")) {
+                conf.SSID = "\"" + networkSSID + "\"";   // Please note the quotes. String should contain ssid in quote
+            } else {
+                conf.SSID = networkSSID;
+            }
+            Log.i(TAG, "connectToWiFiAp MANUFACTURER :" + Build.MANUFACTURER);
+
+            Log.i(TAG, "connectToWiFiAp ssid :" + conf.SSID);
             conf.status = WifiConfiguration.Status.ENABLED;
             conf.priority = 40;
 
@@ -284,8 +300,9 @@ public class WifiManagerUtils {
 
                 conf.preSharedKey = "\"" + networkPass + "\"";
 
-            } else {//handle no security(password)
+            } else {//handle no security
                 Log.i(TAG, "Connect wifi ->  Configuring OPEN network");
+
                 conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
                 conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
                 conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
@@ -296,6 +313,8 @@ public class WifiManagerUtils {
                 conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
                 conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
                 conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+
+                conf.preSharedKey = "\"" + networkPass + "\"";
             }
 
             int networkId = wifiManager.addNetwork(conf);
@@ -340,6 +359,7 @@ public class WifiManagerUtils {
     }
 
     /**
+     * NOTE: this method is not available in Lenovo
      * Start a thread to read access point to local device when opening ap.
      * File location: "/proc/net/arp"
      * File structure:
@@ -350,14 +370,7 @@ public class WifiManagerUtils {
      * @param onlyReachable  filter if keep reachable devices
      * @param finishListener callback when scan file finished
      */
-    public static void getWifiApClientList(Context context, boolean onlyReachable, ScanFinishListener finishListener) {
-        getWifiApClientList(context, onlyReachable, 300, finishListener);
-    }
-
-    /**
-     * @param reachableTimeout use in {@link InetAddress#isReachable(int)}
-     */
-    public static void getWifiApClientList(final Context context, final boolean onlyReachable, final int reachableTimeout, final ScanFinishListener finishListener) {
+    public static void getWifiApClientList(final Context context, final boolean onlyReachable, final ScanFinishListener finishListener) {
 
         Runnable runnable = new Runnable() {
             public void run() {
@@ -376,7 +389,7 @@ public class WifiManagerUtils {
                             String mac = splitted[3];
 
                             if (mac.matches("..:..:..:..:..:..")) {
-                                boolean isReachable = InetAddress.getByName(splitted[0]).isReachable(reachableTimeout);
+                                boolean isReachable = checkIpReachable((splitted[0]));
 
                                 if (!onlyReachable || isReachable) {
                                     result.add(new ClientScanResult(splitted[0], splitted[3], splitted[5], isReachable));
@@ -385,12 +398,12 @@ public class WifiManagerUtils {
                         }
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, e.toString());
+                    Log.e(TAG, "getWifiApClientList:" + e.toString());
                 } finally {
                     try {
                         br.close();
                     } catch (IOException e) {
-                        Log.e(TAG, e.getMessage());
+                        Log.e(TAG, "getWifiApClientList:" + e.getMessage());
                     }
                 }
 
@@ -407,6 +420,29 @@ public class WifiManagerUtils {
         };
 
         new Thread(runnable).start();
+    }
+
+
+    /**
+     * check ip address is reachable or not
+     *
+     * @param ip ip need be pinged
+     * @return reachable
+     */
+    public static boolean checkIpReachable(String ip) {
+        Process p1 = null;
+        try {
+            //-c indicate Unix system,
+            //-n indicate Window system
+            p1 = Runtime.getRuntime().exec("ping -c 1 " + ip);
+            return p1.waitFor() == 0;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**

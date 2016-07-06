@@ -97,7 +97,7 @@ public class ReceiveService extends IntentService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            Log.i(TAG, e.getMessage());
+            Log.i(TAG,"error happened:"+ e.getMessage());
             setResult(RECEIVE_FAILED);
         } finally {
             try {

@@ -15,6 +15,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
+import android.os.StrictMode;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -36,7 +38,6 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created by Bruce Too
@@ -76,6 +77,18 @@ public class HotpotActivity extends Activity {
         initWifiList();
         registerReceiver();
         startReceiveService();
+//        correctXiaomiNet();
+    }
+
+    private void correctXiaomiNet() {
+
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .detectNetwork()
+                .penaltyLog()
+                .build());
+
     }
 
     /**
@@ -155,8 +168,7 @@ public class HotpotActivity extends Activity {
         mListStatus.setText("Connected Client list,Click to send file:");
         mProgressBar.setVisibility(View.VISIBLE);
 
-        boolean isCreateSuccess = WifiManagerUtils.createWifiAp(this, "brucetoo", "");
-        if (isCreateSuccess) {
+        if (WifiManagerUtils.checkAndCreateWifiAp(this,"brucetoo","")) {
             Log.i(TAG, "create wifi app successful");
             mHandler.postDelayed(mCheckWifiClientRunnable, 1000);
         }
@@ -182,6 +194,27 @@ public class HotpotActivity extends Activity {
             WifiManagerUtils.startScanWifiList(this);
         }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (resultCode == Activity.RESULT_OK && requestCode == FILE_REQUEST_ID) {
+            mFile2Send = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+            mSendFile.setText("File is already : " + mFile2Send);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && requestCode == WifiManagerUtils.PERMISSIONS_REQUEST_CODE_WRITE_SETTING) {
+            if (Settings.System.canWrite(this)) {
+                Log.i(TAG, "SDK_INT >= 22 WRITE_SETTING grant");
+                if (WifiManagerUtils.checkAndCreateWifiAp(this,"brucetoo","")) {
+                    Log.i(TAG, "create wifi app successful");
+                    mHandler.postDelayed(mCheckWifiClientRunnable, 1000);
+                }
+            }
+        }
+    }
+
+
 
     private Runnable mCheckWifiClientRunnable = new Runnable() {
         @Override
@@ -217,7 +250,7 @@ public class HotpotActivity extends Activity {
                         new MaterialFilePicker()
                                 .withActivity(HotpotActivity.this)
                                 .withRequestCode(FILE_REQUEST_ID)
-                                .withFilter(Pattern.compile(".*txt")) // Filtering files and directories by file name using regexp
+//                                .withFilter(Pattern.compile(".*")) // Filtering files and directories by file name using regexp
                                 .withFilterDirectories(true) // Set directories filterable (false by default)
                                 .withHiddenFiles(false) // Show hidden files and folders
                                 .start();
@@ -240,16 +273,6 @@ public class HotpotActivity extends Activity {
     //send file service 2 client
     public void sendFile(ClientScanResult item) {
         WifiManagerUtils.checkAndSendFile(this, item.getIpAddr(), mFile2Send, mSendResult);
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        if (resultCode == Activity.RESULT_OK && requestCode == FILE_REQUEST_ID) {
-            mFile2Send = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
-            mSendFile.setText("File is already : " + mFile2Send);
-        }
     }
 
     @Override
