@@ -15,8 +15,10 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -204,6 +206,8 @@ public class WifiManagerUtils {
 
     /**
      * Connect wifi ap with scanResult and password
+     * Note:we need call this method in sub thread,and do call this again
+     * util {@link WifiManager#NETWORK_STATE_CHANGED_ACTION} callback
      *
      * @param context    context to get WifiManager
      * @param scanResult {@link ScanResult} scan by {@link WifiManagerUtils#startScanWifiList(Context)}
@@ -283,7 +287,8 @@ public class WifiManagerUtils {
                 conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
                 conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
 
-                conf.preSharedKey = "\"" + networkPass + "\"";
+                //NOTE android 6.0+ do need this
+//                conf.preSharedKey = "\"" + networkPass + "\"";
             }
 
             int networkId = wifiManager.addNetwork(conf);
@@ -454,22 +459,37 @@ public class WifiManagerUtils {
      * Check file if is exist,and send file to server
      *
      * @param context        context
+     * @param currentIp      only use in client connect to server
      * @param serverIp       server ip
      * @param sendFile       file path string
      * @param resultReceiver ResultReceiver callback that handle send state
      */
-    public static void checkAndSendFile(Context context, String serverIp, String sendFile, ResultReceiver resultReceiver) {
+    public static void checkAndSendFile(Context context, String currentIp, String serverIp, String sendFile, ResultReceiver resultReceiver) {
 
         if (!TextUtils.isEmpty(sendFile)) {
             Intent serviceIntent = new Intent(context, TransferService.class);
             serviceIntent.putExtra(TransferService.INTENT_SERVER_IP, serverIp);//server ip
             serviceIntent.putExtra(TransferService.INTENT_SERVER_PORT, WifiManagerUtils.SERVER_CONNECT_PORT);
             serviceIntent.putExtra(TransferService.INTENT_FILE_TO_SEND, sendFile);
+            serviceIntent.putExtra(TransferService.INTENT_CURRENT_IP, currentIp);
             serviceIntent.putExtra(TransferService.INTENT_SEND_RESULT, resultReceiver);
             context.startService(serviceIntent);
         } else {
             Toast.makeText(context, "No file is chose!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Check file if is exist,and send file to server
+     *
+     * @param context        context
+     * @param serverIp       server ip
+     * @param sendFile       file path string
+     * @param resultReceiver ResultReceiver callback that handle send state
+     */
+    public static void checkAndSendFile(Context context, String serverIp, String sendFile, ResultReceiver resultReceiver) {
+
+        checkAndSendFile(context, "", serverIp, sendFile, resultReceiver);
     }
 
     /**
@@ -489,18 +509,30 @@ public class WifiManagerUtils {
         }
     }
 
+    public static void checkAndScanWifiList(Fragment fragment) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ActivityCompat.checkSelfPermission(fragment.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            fragment.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
+        } else {
+            Log.i(TAG, "SDK_INT < 22 start scan wifi list");
+            WifiManagerUtils.startScanWifiList(fragment.getActivity());
+        }
+    }
 
 
     /**
      * Before create wifi ap ,need check android version and decide request WRITE_SETTING or not,
      * if version >= 22 and not be granted,need handle grant result in
-     * {@link HotpotActivity#onActivityResult(int, int, Intent)}
+     * {@link HotpotActivity#onActivityResult(int, int, Intent)
+     * if version < 22 handle result in
+     * {@link HotpotActivity#onCreateWifi(View)}}
+     *
      * @param activity Activity to startActivityForResult
-     * @param ssid wifi ap ssid
-     * @param pass wifi ap password
+     * @param ssid     wifi ap ssid
+     * @param pass     wifi ap password
      * @return create wifi ap successful or not
      */
-    public static boolean checkAndCreateWifiAp(Activity activity,String ssid,String pass) {
+    public static boolean checkAndCreateWifiAp(Activity activity, String ssid, String pass) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(activity)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
@@ -508,6 +540,24 @@ public class WifiManagerUtils {
             activity.startActivityForResult(intent, WifiManagerUtils.PERMISSIONS_REQUEST_CODE_WRITE_SETTING);
         } else {
             return WifiManagerUtils.createWifiAp(activity, ssid, pass);
+        }
+
+        return false;
+    }
+
+    /**
+     * Create wifi ap from fragment
+     *
+     * @param fragment from fragment
+     */
+    public static boolean checkAndCreateWifiAp(Fragment fragment, String ssid, String pass) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(fragment.getActivity())) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                    Uri.parse("package:" + fragment.getActivity().getPackageName()));
+            fragment.startActivityForResult(intent, WifiManagerUtils.PERMISSIONS_REQUEST_CODE_WRITE_SETTING);
+        } else {
+            return WifiManagerUtils.createWifiAp(fragment.getActivity(), ssid, pass);
         }
 
         return false;
