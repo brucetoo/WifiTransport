@@ -92,24 +92,6 @@ public class WifiManagerUtils {
     }
 
     /**
-     * Check android version,if > M handle permission callback in
-     * {@link Activity#onRequestPermissionsResult(int, String[], int[])}
-     *
-     * @param context activity that handle onRequestPermissionsResult
-     * @see HotpotActivity#onRequestPermissionsResult(int, String[], int[])
-     */
-    public static void checkAndScanWifiList(Activity context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            context.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
-        } else {
-            Log.i(TAG, "SDK_INT < 22 start scan wifi list");
-            WifiManagerUtils.startScanWifiList(context);
-        }
-    }
-
-
-    /**
      * Scan wifi list
      * handle result in broadcast action {@link WifiManager#SCAN_RESULTS_AVAILABLE_ACTION}
      *
@@ -127,19 +109,6 @@ public class WifiManagerUtils {
         wifiManager.startScan();
     }
 
-
-    public static boolean checkAndCreateWifiAp(Activity activity,String ssid,String pass) {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(activity)) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                    Uri.parse("package:" + activity.getPackageName()));
-            activity.startActivityForResult(intent, WifiManagerUtils.PERMISSIONS_REQUEST_CODE_WRITE_SETTING);
-        } else {
-            return WifiManagerUtils.createWifiAp(activity, ssid, pass);
-        }
-
-        return false;
-    }
 
     /**
      * Create wifi ap by different android version
@@ -503,6 +472,46 @@ public class WifiManagerUtils {
         }
     }
 
+    /**
+     * Check android version,if > M handle permission callback in
+     * {@link Activity#onRequestPermissionsResult(int, String[], int[])}
+     *
+     * @param context activity that handle onRequestPermissionsResult
+     * @see HotpotActivity#onRequestPermissionsResult(int, String[], int[])
+     */
+    public static void checkAndScanWifiList(Activity context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            context.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
+        } else {
+            Log.i(TAG, "SDK_INT < 22 start scan wifi list");
+            WifiManagerUtils.startScanWifiList(context);
+        }
+    }
+
+
+
+    /**
+     * Before create wifi ap ,need check android version and decide request WRITE_SETTING or not,
+     * if version >= 22 and not be granted,need handle grant result in
+     * {@link HotpotActivity#onActivityResult(int, int, Intent)}
+     * @param activity Activity to startActivityForResult
+     * @param ssid wifi ap ssid
+     * @param pass wifi ap password
+     * @return create wifi ap successful or not
+     */
+    public static boolean checkAndCreateWifiAp(Activity activity,String ssid,String pass) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(activity)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                    Uri.parse("package:" + activity.getPackageName()));
+            activity.startActivityForResult(intent, WifiManagerUtils.PERMISSIONS_REQUEST_CODE_WRITE_SETTING);
+        } else {
+            return WifiManagerUtils.createWifiAp(activity, ssid, pass);
+        }
+
+        return false;
+    }
 }
 
 
