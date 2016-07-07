@@ -1,6 +1,7 @@
 package com.brucetoo.wifitransport.HotPot;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -185,6 +186,7 @@ public class HotpotActivity extends Activity {
 
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {

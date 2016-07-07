@@ -26,7 +26,7 @@
         android:theme="@style/AppTheme">
 
 
-        <activity android:name=".HotPot.HotpotActivity">
+        <activity android:name=".HotPot.HotpotReleaseActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

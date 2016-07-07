@@ -1,6 +1,7 @@
 package com.brucetoo.wifitransport;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.karumi.dexter.Dexter;
 
@@ -11,9 +12,16 @@ import com.karumi.dexter.Dexter;
  */
 public class WifiApplication extends Application {
 
+   static WifiApplication application;
     @Override
     public void onCreate() {
         super.onCreate();
         Dexter.initialize(this);
+        application = this;
     }
+
+    public static Context getApplication(){
+        return application;
+    }
+
 }

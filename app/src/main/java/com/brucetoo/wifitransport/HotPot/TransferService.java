@@ -37,6 +37,7 @@ public class TransferService extends IntentService {
     public static final String INTENT_SERVER_PORT = "server_port";
     public static final String INTENT_SERVER_IP = "server_ip";
     public static final String INTENT_SEND_RESULT = "send_result";
+    public static final String INTENT_CURRENT_IP = "current_ip";
     public static final int TIME_OUT = 5000;
 
     private ResultReceiver mSendResult;
@@ -51,6 +52,7 @@ public class TransferService extends IntentService {
         mSendResult = intent.getParcelableExtra(INTENT_SEND_RESULT);
         String serverIp = intent.getStringExtra(INTENT_SERVER_IP);
         String fileToSend = intent.getStringExtra(INTENT_FILE_TO_SEND);
+        String currentIp = intent.getStringExtra(INTENT_CURRENT_IP);
 
         Socket clientSocket = null;
         OutputStream out = null;
@@ -98,6 +100,7 @@ public class TransferService extends IntentService {
                     .setSuffix(FileTypeUtils.getExtension(file.getName()))
                     .setFileSize(file.getTotalSpace())
                     .setData(ByteString.readFrom(in))
+                    .setIp(currentIp)
                     .build();
             wifiData.writeTo(out);
 

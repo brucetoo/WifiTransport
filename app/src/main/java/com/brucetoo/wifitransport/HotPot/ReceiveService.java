@@ -31,6 +31,7 @@ public class ReceiveService extends IntentService {
     private static final String TAG = "ReceiveService";
     public static final String INTENT_RECEIVER_RESULT = "receiver_result";
     public static final String BUNDLE_RECEIVE_STATE = "send_state";
+    public static final String BUNDLE_RECEIVE_IP = "receive_ip";
     public static final int RECEIVE_SUCCESS = 0;
     public static final int RECEIVE_FAILED = 1;
 
@@ -84,6 +85,9 @@ public class ReceiveService extends IntentService {
                 WifiMsg.WifiData.Builder builder = WifiMsg.WifiData.newBuilder().mergeFrom(in);
                 String suffix = builder.getSuffix();
                 Log.i(TAG, "File suffix: " + suffix);
+                String clientIp = builder.getIp();
+                Log.i(TAG, "clientIp: " + clientIp);
+                setResult(clientIp);
                 long fileSize = builder.getFileSize();
                 Log.i(TAG, "File fileSize: " + fileSize);
                 InputStream input = builder.getData().newInput();
@@ -116,6 +120,13 @@ public class ReceiveService extends IntentService {
     private void setResult(int state) {
         Bundle bundle = new Bundle();
         bundle.putInt(BUNDLE_RECEIVE_STATE, state);
+        if (mServerResult != null)
+            mServerResult.send(WifiManagerUtils.SERVER_CONNECT_PORT, bundle);
+    }
+
+    private void setResult(String ip) {
+        Bundle bundle = new Bundle();
+        bundle.putString(BUNDLE_RECEIVE_IP, ip);
         if (mServerResult != null)
             mServerResult.send(WifiManagerUtils.SERVER_CONNECT_PORT, bundle);
     }

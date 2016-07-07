@@ -45,11 +45,25 @@ public final class WifiMsg {
     long getFileSize();
 
     /**
-     * <code>optional bytes data = 4;</code>
+     * <code>optional string ip = 4;</code>
+     */
+    boolean hasIp();
+    /**
+     * <code>optional string ip = 4;</code>
+     */
+    java.lang.String getIp();
+    /**
+     * <code>optional string ip = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getIpBytes();
+
+    /**
+     * <code>optional bytes data = 5;</code>
      */
     boolean hasData();
     /**
-     * <code>optional bytes data = 4;</code>
+     * <code>optional bytes data = 5;</code>
      */
     com.google.protobuf.ByteString getData();
   }
@@ -122,7 +136,13 @@ public final class WifiMsg {
               break;
             }
             case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000008;
+              ip_ = bs;
+              break;
+            }
+            case 42: {
+              bitField0_ |= 0x00000010;
               data_ = input.readBytes();
               break;
             }
@@ -238,16 +258,58 @@ public final class WifiMsg {
       return fileSize_;
     }
 
-    public static final int DATA_FIELD_NUMBER = 4;
-    private com.google.protobuf.ByteString data_;
+    public static final int IP_FIELD_NUMBER = 4;
+    private java.lang.Object ip_;
     /**
-     * <code>optional bytes data = 4;</code>
+     * <code>optional string ip = 4;</code>
      */
-    public boolean hasData() {
+    public boolean hasIp() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional bytes data = 4;</code>
+     * <code>optional string ip = 4;</code>
+     */
+    public java.lang.String getIp() {
+      java.lang.Object ref = ip_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          ip_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string ip = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getIpBytes() {
+      java.lang.Object ref = ip_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ip_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DATA_FIELD_NUMBER = 5;
+    private com.google.protobuf.ByteString data_;
+    /**
+     * <code>optional bytes data = 5;</code>
+     */
+    public boolean hasData() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bytes data = 5;</code>
      */
     public com.google.protobuf.ByteString getData() {
       return data_;
@@ -257,6 +319,7 @@ public final class WifiMsg {
       id_ = 0;
       suffix_ = "";
       fileSize_ = 0L;
+      ip_ = "";
       data_ = com.google.protobuf.ByteString.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
@@ -286,7 +349,10 @@ public final class WifiMsg {
         output.writeInt64(3, fileSize_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBytes(4, data_);
+        output.writeBytes(4, getIpBytes());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBytes(5, data_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -311,7 +377,11 @@ public final class WifiMsg {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, data_);
+          .computeBytesSize(4, getIpBytes());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(5, data_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -436,8 +506,10 @@ public final class WifiMsg {
         bitField0_ = (bitField0_ & ~0x00000002);
         fileSize_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
-        data_ = com.google.protobuf.ByteString.EMPTY;
+        ip_ = "";
         bitField0_ = (bitField0_ & ~0x00000008);
+        data_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -481,6 +553,10 @@ public final class WifiMsg {
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
+        result.ip_ = ip_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
         result.data_ = data_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -508,6 +584,11 @@ public final class WifiMsg {
         }
         if (other.hasFileSize()) {
           setFileSize(other.getFileSize());
+        }
+        if (other.hasIp()) {
+          bitField0_ |= 0x00000008;
+          ip_ = other.ip_;
+          onChanged();
         }
         if (other.hasData()) {
           setData(other.getData());
@@ -683,36 +764,112 @@ public final class WifiMsg {
         return this;
       }
 
-      private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
+      private java.lang.Object ip_ = "";
       /**
-       * <code>optional bytes data = 4;</code>
+       * <code>optional string ip = 4;</code>
        */
-      public boolean hasData() {
+      public boolean hasIp() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional bytes data = 4;</code>
+       * <code>optional string ip = 4;</code>
+       */
+      public java.lang.String getIp() {
+        java.lang.Object ref = ip_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            ip_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string ip = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getIpBytes() {
+        java.lang.Object ref = ip_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ip_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string ip = 4;</code>
+       */
+      public Builder setIp(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        ip_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ip = 4;</code>
+       */
+      public Builder clearIp() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        ip_ = getDefaultInstance().getIp();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string ip = 4;</code>
+       */
+      public Builder setIpBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        ip_ = value;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes data = 5;</code>
+       */
+      public boolean hasData() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bytes data = 5;</code>
        */
       public com.google.protobuf.ByteString getData() {
         return data_;
       }
       /**
-       * <code>optional bytes data = 4;</code>
+       * <code>optional bytes data = 5;</code>
        */
       public Builder setData(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000008;
+  bitField0_ |= 0x00000010;
         data_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional bytes data = 4;</code>
+       * <code>optional bytes data = 5;</code>
        */
       public Builder clearData() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000010);
         data_ = getDefaultInstance().getData();
         onChanged();
         return this;
@@ -743,10 +900,10 @@ public final class WifiMsg {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022TransferData.proto\022\rwifitransport\"F\n\010W" +
+      "\n\022TransferData.proto\022\rwifitransport\"R\n\010W" +
       "ifiData\022\n\n\002id\030\001 \002(\005\022\016\n\006suffix\030\002 \001(\t\022\020\n\010f" +
-      "ileSize\030\003 \001(\003\022\014\n\004data\030\004 \001(\014B%\n\032com.bruce" +
-      "too.wifitransportB\007WifiMsg"
+      "ileSize\030\003 \001(\003\022\n\n\002ip\030\004 \001(\t\022\014\n\004data\030\005 \001(\014B" +
+      "%\n\032com.brucetoo.wifitransportB\007WifiMsg"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -765,7 +922,7 @@ public final class WifiMsg {
     internal_static_wifitransport_WifiData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_wifitransport_WifiData_descriptor,
-        new java.lang.String[] { "Id", "Suffix", "FileSize", "Data", });
+        new java.lang.String[] { "Id", "Suffix", "FileSize", "Ip", "Data", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
