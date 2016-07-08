@@ -42,6 +42,8 @@
             <!--</intent-filter>-->
         </activity>
 
+        <activity android:name=".HotPot.image.ImageActivity"/>
+
         <service
             android:name=".HotPot.UploadService"
             android:exported="false"/>

@@ -1,9 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
+//    signingConfigs {
+//        config {
+//            keyAlias 'brucetoo'
+//            keyPassword 'brucetoo'
+//            storeFile file('brucetoo')
+//            storePassword 'brucetoo'
+//        }
+//    }
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
-
     defaultConfig {
         applicationId "com.brucetoo.wifitransport"
         minSdkVersion 14
@@ -27,5 +34,6 @@ dependencies {
     compile 'com.android.support:design:23.2.1'
     compile 'com.joanzapata.android:base-adapter-helper:1.1.11'
     compile 'com.karumi:dexter:2.2.2'
-//    compile 'com.nononsenseapps:filepicker:2.5.3'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    //    compile 'com.nononsenseapps:filepicker:2.5.3'
 }
