@@ -2,7 +2,10 @@ package com.brucetoo.wifitransport.HotPot;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,6 +44,7 @@ import java.util.List;
 public class ReceiverFragment extends Fragment implements View.OnClickListener {
 
     private final static String TAG = ReceiverFragment.class.getSimpleName();
+    private static final String WIFI_AP_STATE_CHANGED_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED";
     public static final int FILE_REQUEST_ID = 1000;
     private static final String WIFI_NAME = "brucetoo";
 
@@ -84,8 +88,20 @@ public class ReceiverFragment extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
 
         startReceiveService();
+        registerReceiver();
         WifiManagerUtils.checkAndCreateWifiAp(this, WIFI_NAME, "");
+        WifiManagerUtils.startScanWifiList(getActivity());
     }
+
+    private WifiReceiver mWifiReceiver;
+
+    private void registerReceiver() {
+        mWifiReceiver = new WifiReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WIFI_AP_STATE_CHANGED_ACTION);
+        getActivity().registerReceiver(mWifiReceiver, filter);
+    }
+
 
     private void startReceiveService() {
         Intent intent = new Intent(getActivity(), ReceiveService.class);
@@ -96,6 +112,7 @@ public class ReceiverFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        getActivity().unregisterReceiver(mWifiReceiver);
         WifiManagerUtils.closeWifiAp(getActivity());
         getActivity().stopService(new Intent(getActivity(), ReceiveService.class));
     }
@@ -176,7 +193,7 @@ public class ReceiverFragment extends Fragment implements View.OnClickListener {
         } else if (v == mBtnSendFile) {
             WifiManagerUtils.checkAndSendFile(getActivity(), WifiManagerUtils.SERVER_IP, mFile2Send, mSendResult);
         } else if (v == mTextClient) {
-            WifiManagerUtils.checkAndSendFile(getActivity(),mClientIp,mFile2Send,mSendResult);
+            WifiManagerUtils.checkAndSendFile(getActivity(), mClientIp, mFile2Send, mSendResult);
         }
     }
 
@@ -208,4 +225,19 @@ public class ReceiverFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    public class WifiReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(WIFI_AP_STATE_CHANGED_ACTION)) {
+                int wifiState = intent.getIntExtra("wifi_state", 0); //name = EXTRA_WIFI_STATE
+                if (wifiState == 13) { //WIFI_AP_STATE_ENABLED
+                    Toast.makeText(getActivity(), "Create ap successfully", Toast.LENGTH_SHORT).show();
+                } else if (wifiState == 14) {//WIFI_AP_STATE_FAILED
+                    Toast.makeText(getActivity(), "Create ap failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
 }
