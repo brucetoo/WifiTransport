@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#aa000000"
+                android:orientation="vertical">
+
+    <View
+        android:id="@+id/pp_view_bg"
+        android:layout_width="234dp"
+        android:layout_height="234dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/pp_shape_circle"
+        android:visibility="visible"
+        />
+
+    <View
+        android:id="@+id/pp_view_scan_dot"
+        android:layout_width="234dp"
+        android:layout_height="234dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/pp_img_scan_dot"
+        />
+
+    <View
+        android:layout_width="234dp"
+        android:layout_height="234dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/pp_img_radar_bg"
+        />
+
+    <View
+        android:id="@+id/pp_view_scan_wheel"
+        android:layout_width="234dp"
+        android:layout_height="234dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/pp_img_scan_wheel"
+        />
+
+    <View
+        android:layout_width="43dp"
+        android:layout_height="43dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/pp_img_connect"
+        />
+
+    <TextView
+        android:id="@+id/pp_text_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/pp_view_bg"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="64dp"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        tools:text="正在等待连接者"
+        />
+
+</RelativeLayout>

@@ -33,5 +33,13 @@
             android:layout_marginTop="20dp"
             android:text="BrowseImage"
             />
+
+        <Button
+            android:id="@+id/btn_scan_view"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="ScanView"
+            />
     </LinearLayout>
 </LinearLayout>
