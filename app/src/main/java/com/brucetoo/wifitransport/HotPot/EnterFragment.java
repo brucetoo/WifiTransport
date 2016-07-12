@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.brucetoo.wifitransport.HotPot.image.ImageActivity;
+import com.brucetoo.wifitransport.HotPot.video.WebFragment;
 import com.brucetoo.wifitransport.R;
 
 /**
@@ -56,6 +57,13 @@ public class EnterFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 ((HotpotReleaseActivity) getActivity()).replaceFragment(ScanFragment.newInstance());
+            }
+        });
+
+        view.findViewById(R.id.btn_web).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((HotpotReleaseActivity) getActivity()).replaceFragment(WebFragment.newInstance());
             }
         });
         return view;

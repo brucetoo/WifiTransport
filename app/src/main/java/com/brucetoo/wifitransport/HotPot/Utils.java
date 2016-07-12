@@ -3,6 +3,8 @@ package com.brucetoo.wifitransport.HotPot;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.util.DisplayMetrics;
+import android.view.WindowManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,4 +56,19 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
+    public static int getDeviceWidth(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics mDisplayMetrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(mDisplayMetrics);
+        return mDisplayMetrics.widthPixels;
+    }
+
+    public static int getDeviceHeight(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics mDisplayMetrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(mDisplayMetrics);
+        return mDisplayMetrics.heightPixels;
+    }
+
 }

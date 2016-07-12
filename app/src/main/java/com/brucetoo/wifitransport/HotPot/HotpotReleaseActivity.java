@@ -6,7 +6,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 
+import com.brucetoo.wifitransport.HotPot.video.WebFragment;
 import com.brucetoo.wifitransport.R;
+
+import java.util.List;
 
 /**
  * Created by Bruce Too
@@ -35,4 +38,34 @@ public class HotpotReleaseActivity extends FragmentActivity {
                     .commit();
         }
     }
+
+
+
+    @Override
+    public void onBackPressed() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        if(fragments.size() >= 2){
+            for (Fragment f : fragments) {
+                if (f instanceof WebFragment){
+                    if(((WebFragment) f).canGoBack()){
+                        ((WebFragment) f).goBack();
+                    }else {
+                        super.onBackPressed();
+                    }
+                }
+            }
+        }else {
+            super.onBackPressed();
+        }
+
+    }
+
+//    @Override
+//        public boolean onKeyDown(int keyCode, KeyEvent event) {
+//            if ((keyCode == KeyEvent.KEYCODE_BACK) && getFragmentManager().f) {
+//                webView.goBack();
+//                return true;
+//            }
+//            return super.onKeyDown(keyCode, event);
+//        }
 }
