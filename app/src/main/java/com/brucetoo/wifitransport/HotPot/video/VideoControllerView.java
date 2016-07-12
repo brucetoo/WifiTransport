@@ -37,6 +37,7 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
     private static final int HANDLER_ANIMATE_OUT = 1;// out animate
     private static final int HANDLER_UPDATE_PROGRESS = 2;//cycle update progress
     private static final long PROGRESS_SEEK = 500;
+    private static final long ANIMTE_TIME = 300;
 
     private MediaPlayerControlListener mMediaPlayerListener;// control media play
     private Activity mContext;
@@ -196,36 +197,32 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
                         public void onSize(ViewAnimator viewAnimator) {
                             viewAnimator.animate()
                                     .translationY(-mTopLayout.getHeight(), 0)
-                                    .duration(500)
+                                    .duration(ANIMTE_TIME)
                                     .andAnimate(mBottomLayout)
                                     .translationY(mBottomLayout.getHeight(), 0)
-                                    .duration(500)
+                                    .duration(ANIMTE_TIME)
                                     .start(new ViewAnimator.Listeners.Start() {
                                         @Override
                                         public void onStart() {
-                                            setSeekProgress();
-                                            if (mPauseButton != null) {
-                                                mPauseButton.requestFocus();
-                                                if (!mMediaPlayerListener.canPause()) {
-                                                    mPauseButton.setEnabled(false);
-                                                }
-                                            }
-                                        }
-                                    })
-                                    .end(new ViewAnimator.Listeners.End() {
-                                        @Override
-                                        public void onEnd() {
                                             mIsShowing = true;
-                                            togglePausePlay();
-                                            toggleFullScreen();
-                                            //update progress
                                             mHandler.sendEmptyMessage(HANDLER_UPDATE_PROGRESS);
                                         }
                                     });
                         }
                     });
-
         }
+
+        setSeekProgress();
+        if (mPauseButton != null) {
+            mPauseButton.requestFocus();
+            if (!mMediaPlayerListener.canPause()) {
+                mPauseButton.setEnabled(false);
+            }
+        }
+        togglePausePlay();
+        toggleFullScreen();
+        //update progress
+        mHandler.sendEmptyMessage(HANDLER_UPDATE_PROGRESS);
 
     }
 
@@ -267,11 +264,11 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         ViewAnimator.putOn(mTopLayout)
                 .animate()
                 .translationY(-mTopLayout.getHeight())
-                .duration(500)
+                .duration(ANIMTE_TIME)
 
                 .andAnimate(mBottomLayout)
                 .translationY(mBottomLayout.getHeight())
-                .duration(500)
+                .duration(ANIMTE_TIME)
                 .end(new ViewAnimator.Listeners.End() {
                     @Override
                     public void onEnd() {
