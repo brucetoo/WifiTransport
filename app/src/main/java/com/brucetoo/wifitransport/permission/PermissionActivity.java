@@ -58,6 +58,13 @@ public class PermissionActivity extends FragmentActivity implements PermissionsA
     @OnPermissionGranted(REQUEST_ALL_PERM)
     public void requestAllPerm() {
 
+        /**
+         * Xiaomi only CAMERA and **EXTERNAL_STORAGE need granted by permission request,
+         * the left permissions will notify user to granted when use permission to do sm.
+         *
+         *
+         */
+
         //request one of permission in permission-group,then you get the whole permission in permission-group
         String[] allPerms = {Manifest.permission.CAMERA, Manifest.permission.READ_CONTACTS
                 , Manifest.permission.WRITE_CONTACTS, Manifest.permission.GET_ACCOUNTS
