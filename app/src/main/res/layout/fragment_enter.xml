@@ -49,5 +49,13 @@
             android:layout_marginTop="20dp"
             android:text="Web"
             />
+
+        <Button
+            android:id="@+id/btn_permission"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Permission"
+            />
     </LinearLayout>
 </LinearLayout>

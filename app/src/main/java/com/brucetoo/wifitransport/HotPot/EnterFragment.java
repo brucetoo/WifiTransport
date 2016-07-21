@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import com.brucetoo.wifitransport.HotPot.image.ImageActivity;
 import com.brucetoo.wifitransport.HotPot.video.WebFragment;
 import com.brucetoo.wifitransport.R;
+import com.brucetoo.wifitransport.permission.PermissionActivity;
 
 /**
  * Created by Bruce Too
@@ -64,6 +65,13 @@ public class EnterFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 ((HotpotReleaseActivity) getActivity()).replaceFragment(WebFragment.newInstance());
+            }
+        });
+
+        view.findViewById(R.id.btn_permission).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().startActivity(new Intent(getActivity(), PermissionActivity.class));
             }
         });
         return view;
