@@ -59,10 +59,15 @@ public class WifiManagerUtils {
 
     /**
      * Request code of  ACCESS_COARSE_LOCATION permission
+     * startActivityForResult() in FragmentActivity requires the requestCode to be of 16 bits,
+     * meaning the range is from 0 to 65535.
+     * <p/>
+     * Also, validateRequestPermissionsRequestCode in FragmentActivity requires requestCode to be of 8 bits,
+     * meaning the range is from 0 to 255.
      */
-    public static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 10001;
+    public static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 111;
 
-    public static final int PERMISSIONS_REQUEST_CODE_WRITE_SETTING = 10002;
+    public static final int PERMISSIONS_REQUEST_CODE_WRITE_SETTING = 112;
 
     /**
      * Create or connect server retry count
@@ -193,15 +198,30 @@ public class WifiManagerUtils {
 
         WifiConfiguration config = new WifiConfiguration();
 
-        config.SSID = ssid;
+        config.allowedAuthAlgorithms.clear();
+        config.allowedGroupCiphers.clear();
+        config.allowedKeyManagement.clear();
+        config.allowedPairwiseCiphers.clear();
+        config.allowedProtocols.clear();
 //        config.SSID = "\"" + ssid + "\"";
+        config.SSID = ssid;
         Log.e(TAG, "createWifiApConfig ssid :" + config.SSID);
-        config.wepKeys[0] = "\"" + pass + "\"";
-        config.preSharedKey = "\"" + pass + "\"";
-        config.wepTxKeyIndex = 0;
-        config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
         return config;
+    }
+
+
+    private static WifiConfiguration clearExistConfigure(WifiManager wifiManager, String SSID) {
+
+        List<WifiConfiguration> existingConfigs = wifiManager.getConfiguredNetworks();
+
+        for (WifiConfiguration existingConfig : existingConfigs) {
+
+            if (existingConfig.SSID.equals("\"" + SSID + "\"")) {
+
+                return existingConfig;
+            }
+        }
+        return null;
     }
 
 
@@ -218,104 +238,33 @@ public class WifiManagerUtils {
 
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
-        try {
-            Log.i(TAG, "Connect wifi -> SSID " + scanResult.SSID + " Security : " + scanResult.capabilities);
+//        try {
+        Log.i(TAG, "Connect wifi -> Result item: " + scanResult.toString());
 
-            String networkSSID = scanResult.SSID;
-            String networkPass = "\"" + password + "\"";
+        WifiConfiguration tempConfig = clearExistConfigure(wifiManager, scanResult.SSID);
+        if (tempConfig != null) {
+            Log.i(TAG, "connectToWiFiAp clearExistConfigure");
+            wifiManager.removeNetwork(tempConfig.networkId);
+        }
 
-            WifiConfiguration conf = new WifiConfiguration();
+        WifiConfiguration wifiConfiguration = new WifiConfiguration();
+        wifiConfiguration.SSID = "\"" + scanResult.SSID + "\"";
+        wifiConfiguration.BSSID = scanResult.BSSID;
+        wifiConfiguration.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+        wifiConfiguration.hiddenSSID = false;
 
-            //NOTE quote must be added,or Xiao Mi cannot connecte wifi
-            if (Build.MANUFACTURER.equalsIgnoreCase("xiaomi")) {
-                conf.SSID = "\"" + networkSSID + "\"";   // Please note the quotes. String should contain ssid in quote
-            } else {
-                conf.SSID = networkSSID;
-            }
-            Log.i(TAG, "connectToWiFiAp MANUFACTURER :" + Build.MANUFACTURER);
+        int netID = wifiManager.addNetwork(wifiConfiguration);
 
-            Log.i(TAG, "connectToWiFiAp ssid :" + conf.SSID);
-            conf.status = WifiConfiguration.Status.ENABLED;
-            conf.priority = 40;
+        Log.i(TAG, "connectToWiFiAp netID :" + netID);
+        if(netID != -1){
+            boolean isDisconnected = wifiManager.disconnect();
+            Log.i(TAG, "Connect wifi -> isDisconnected : " + isDisconnected);
 
-            //handle security = WEP
-            if (scanResult.capabilities.toUpperCase().contains("WEP")) {
-                Log.i(TAG, "Connect wifi -> Configuring WEP");
-                conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-                conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-                conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-                conf.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
-                conf.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
-                conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-                conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
+            boolean isEnabled = wifiManager.enableNetwork(netID, true);
+            Log.i(TAG, "Connect wifi -> isEnabled : " + isEnabled);
 
-                if (networkPass.matches("^[0-9a-fA-F]+$")) {
-                    conf.wepKeys[0] = networkPass;
-                } else {
-                    conf.wepKeys[0] = "\"".concat(networkPass).concat("\"");
-                }
-                conf.wepTxKeyIndex = 0;
-
-                //handle security = WEP
-            } else if (scanResult.capabilities.toUpperCase().contains("WPA")) {
-                Log.i(TAG, "Connect wifi -> Configuring WPA");
-
-                conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-                conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-                conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-                conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-                conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-
-                conf.preSharedKey = "\"" + networkPass + "\"";
-
-            } else {//handle no security
-                Log.i(TAG, "Connect wifi ->  Configuring OPEN network");
-
-                conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-                conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-                conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-                conf.allowedAuthAlgorithms.clear();
-                conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-                conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
-                conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-
-                //NOTE android 6.0+ do need this
-//                conf.preSharedKey = "\"" + networkPass + "\"";
-            }
-
-            int networkId = wifiManager.addNetwork(conf);
-
-            Log.i(TAG, "Connect wifi -> Add wifi result: " + networkId);
-
-            List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
-            for (WifiConfiguration i : list) {
-                if (i.SSID != null && i.SSID.equals("\"" + networkSSID + "\"")) {
-                    Log.i(TAG, "Connect wifi -> WifiConfiguration SSID " + i.SSID);
-
-                    boolean isDisconnected = wifiManager.disconnect();
-                    Log.i(TAG, "Connect wifi -> isDisconnected : " + isDisconnected);
-
-                    boolean isEnabled = wifiManager.enableNetwork(i.networkId, true);
-                    Log.i(TAG, "Connect wifi -> isEnabled : " + isEnabled);
-
-                    boolean isReconnected = wifiManager.reconnect();
-                    Log.i(TAG, "Connect wifi -> isReconnected : " + isReconnected);
-
-                    break;
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            boolean isReconnected = wifiManager.reconnect();
+            Log.i(TAG, "Connect wifi -> isReconnected : " + isReconnected);
         }
     }
 
@@ -567,10 +516,11 @@ public class WifiManagerUtils {
 
     /**
      * Open system default view app by file MIME type
-     * @param context context for start activity
+     *
+     * @param context  context for start activity
      * @param filePath file to explore
      */
-    public static void openSystemDefaultViewApp(Context context, String filePath){
+    public static void openSystemDefaultViewApp(Context context, String filePath) {
 
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -207,6 +207,7 @@ public class SenderFragment extends Fragment implements View.OnClickListener {
         if (resultCode == Activity.RESULT_OK && requestCode == FILE_REQUEST_ID) {
             mFile2Send = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
             mTextFileName.setText("File is already : " + mFile2Send);
+            WifiManagerUtils.openSystemDefaultViewApp(getActivity(),mFile2Send);
         }
     }
 
@@ -249,6 +250,7 @@ public class SenderFragment extends Fragment implements View.OnClickListener {
                         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                         mCurrentIp = WifiManagerUtils.formatIpAddress(wifiInfo.getIpAddress());
                         Log.i(TAG, "WifiReceiver -> Connect Ip: " + mCurrentIp);
+                        Log.i(TAG, "WifiReceiver -> Ping Ip: " + WifiManagerUtils.checkIpReachable(mCurrentIp));
                         Toast.makeText(context, "Connected " + wifiInfo.getSSID(), Toast.LENGTH_SHORT).show();
                         break;
                     case CONNECTING:
