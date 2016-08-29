@@ -8,14 +8,13 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
-import com.brucetoo.wifitransport.R;
 import com.brucetoo.wifitransport.HotPot.Utils;
+import com.brucetoo.wifitransport.R;
 
 import java.io.IOException;
 
@@ -25,7 +24,7 @@ import java.io.IOException;
  * On 7/12/16.
  * At 16:13
  */
-public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControlListener, MediaPlayer.OnVideoSizeChangedListener {
+public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.Callback, MediaPlayer.OnPreparedListener, VideoControllerView.MediaPlayerControlListener, MediaPlayer.OnVideoSizeChangedListener, MediaPlayer.OnCompletionListener {
 
     private ResizeSurfaceView mSurfaceView;
     private ProgressBar mLoadingView;
@@ -49,25 +48,32 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
         mRootView = findViewById(R.id.layout_root);
 
         mTitle = getIntent().getStringExtra("title");
-        mControllerView = new VideoControllerView(this);
+
+        mControllerView = new VideoControllerView.Builder(this,this)
+//                .withVideoTitle(mTitle)
+                .withVideoSurfaceView(mSurfaceView)//to enable toggle display controller view
+                .canControlBrightness(true)
+                .canControlVolume(true)
+                .canSeekVideo(true)
+                .exitIcon(R.drawable.video_top_back)
+                .pauseIcon(R.drawable.ic_media_pause)
+                .playIcon(R.drawable.ic_media_play)
+                .shrinkIcon(R.drawable.ic_media_fullscreen_shrink)
+                .stretchIcon(R.drawable.ic_media_fullscreen_stretch)
+                .build(mVideoContainer);
+
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
 
         mMediaPlayer = new MediaPlayer();
         mLoadingView.setVisibility(View.VISIBLE);
-        mSurfaceView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                mControllerView.toggleControllerView();
-                return false;
-            }
-        });
 
         try {
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setDataSource(this, Uri.parse(getIntent().getStringExtra("url")));
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnVideoSizeChangedListener(this);
+            mMediaPlayer.setOnCompletionListener(this);
         } catch (IllegalArgumentException | SecurityException | IllegalStateException | IOException e) {
             e.printStackTrace();
         }
@@ -93,6 +99,7 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
 
     private int mVideoWidth;
     private int mVideoHeight;
+    private boolean mIsComplete;
 
     @Override
     public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
@@ -112,11 +119,9 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        mControllerView.setMediaPlayerControlListener(this);
+        mIsComplete = false;
         mLoadingView.setVisibility(View.GONE);
         mSurfaceView.setVisibility(View.VISIBLE);
-        mControllerView.setAnchorView(mVideoContainer);
-        mControllerView.setGestureListener();
         mMediaPlayer.start();
     }
 
@@ -127,17 +132,6 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
             mMediaPlayer = null;
         }
     }
-
-    @Override
-    public boolean canPause() {
-        return true;
-    }
-
-    @Override
-    public boolean canSeek() {
-        return true;
-    }
-
 
     @Override
     public int getBufferPercentage() {
@@ -169,6 +163,11 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
     }
 
     @Override
+    public boolean isComplete() {
+       return mIsComplete;
+    }
+
+    @Override
     public void pause() {
         if (null != mMediaPlayer) {
             mMediaPlayer.pause();
@@ -187,6 +186,7 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
     public void start() {
         if (null != mMediaPlayer) {
             mMediaPlayer.start();
+            mIsComplete = false;
         }
     }
 
@@ -211,7 +211,7 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
     }
 
     @Override
-    public String getTopTitle() {
-        return mTitle;
+    public void onCompletion(MediaPlayer mp) {
+        mIsComplete = true;
     }
 }
