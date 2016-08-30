@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent">
 
     <RelativeLayout
         android:id="@+id/layout_top"
@@ -19,17 +20,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:src="@drawable/video_top_back" />
+            android:src="@drawable/pp_video_back"/>
 
         <TextView
             android:id="@+id/top_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="直播直播"
             android:textColor="@android:color/white"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="Title"/>
     </RelativeLayout>
 
     <LinearLayout
@@ -49,7 +50,7 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="4dp"
             android:background="@null"
-            android:src="@drawable/ic_media_play" />
+            android:src="@drawable/pp_video_play"/>
 
 
         <TextView
@@ -57,11 +58,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:paddingRight="4dip"
-            android:text="00:00"
+            android:paddingRight="4dp"
             android:textColor="@android:color/white"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="00:00"/>
 
         <SeekBar
             android:id="@+id/bottom_seekbar"
@@ -69,7 +70,7 @@
             android:layout_width="0dip"
             android:layout_height="32dip"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1" />
+            android:layout_weight="1"/>
 
         <TextView
             android:id="@+id/bottom_time"
@@ -78,10 +79,10 @@
             android:layout_gravity="center_vertical"
             android:layout_marginRight="4dp"
             android:paddingLeft="4dip"
-            android:text="11:00"
             android:textColor="@android:color/white"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            tools:text="11:00"/>
 
         <ImageButton
             android:id="@+id/bottom_fullscreen"
@@ -89,7 +90,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:background="@null"
-            android:src="@drawable/ic_media_fullscreen_stretch" />
+            android:src="@drawable/pp_video_stretch"/>
 
     </LinearLayout>
 
@@ -105,7 +106,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/video_volume_bg" />
+            android:src="@drawable/pp_video_volume_bg"/>
 
         <ProgressBar
             android:id="@+id/progress_center"
@@ -117,7 +118,7 @@
             android:max="100"
             android:progress="20"
             android:progressDrawable="@drawable/layer_progress"
-            android:visibility="visible" />
+            android:visibility="visible"/>
     </FrameLayout>
 
 </RelativeLayout>

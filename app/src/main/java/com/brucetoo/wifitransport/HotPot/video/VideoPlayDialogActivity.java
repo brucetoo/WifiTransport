@@ -55,11 +55,11 @@ public class VideoPlayDialogActivity extends Activity implements SurfaceHolder.C
                 .canControlBrightness(true)
                 .canControlVolume(true)
                 .canSeekVideo(true)
-                .exitIcon(R.drawable.video_top_back)
-                .pauseIcon(R.drawable.ic_media_pause)
-                .playIcon(R.drawable.ic_media_play)
-                .shrinkIcon(R.drawable.ic_media_fullscreen_shrink)
-                .stretchIcon(R.drawable.ic_media_fullscreen_stretch)
+                .exitIcon(R.drawable.pp_video_back)
+                .pauseIcon(R.drawable.pp_video_pause)
+                .playIcon(R.drawable.pp_video_play)
+                .shrinkIcon(R.drawable.pp_video_shrink)
+                .stretchIcon(R.drawable.pp_video_stretch)
                 .build(mVideoContainer);
 
         mSurfaceHolder = mSurfaceView.getHolder();

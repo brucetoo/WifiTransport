@@ -129,15 +129,15 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
         private ViewGroup anchorView;
         private SurfaceView surfaceView;
         @DrawableRes
-        private int exitIcon = R.drawable.video_top_back;
+        private int exitIcon = R.drawable.pp_video_back;
         @DrawableRes
-        private int pauseIcon = R.drawable.ic_media_pause;
+        private int pauseIcon = R.drawable.pp_video_pause;
         @DrawableRes
-        private int playIcon = R.drawable.ic_media_play;
+        private int playIcon = R.drawable.pp_video_play;
         @DrawableRes
-        private int shrinkIcon = R.drawable.ic_media_fullscreen_shrink;
+        private int shrinkIcon = R.drawable.pp_video_shrink;
         @DrawableRes
-        private int stretchIcon = R.drawable.ic_media_fullscreen_stretch;
+        private int stretchIcon = R.drawable.pp_video_stretch;
 
         //Required
         public Builder(@Nullable Activity context,@Nullable MediaPlayerControlListener mediaControlListener){
@@ -703,12 +703,12 @@ public class VideoControllerView extends FrameLayout implements VideoGestureList
     public void onVerticalScroll(float percent, int direction) {
         if (direction == ViewGestureListener.SWIPE_LEFT) {
             if(mCanControlBrightness) {
-                mCenterImage.setImageResource(R.drawable.video_bright_bg);
+                mCenterImage.setImageResource(R.drawable.pp_video_bright_bg);
                 updateBrightness(percent);
             }
         } else {
             if(mCanControlVolume) {
-                mCenterImage.setImageResource(R.drawable.video_volume_bg);
+                mCenterImage.setImageResource(R.drawable.pp_video_volume_bg);
                 updateVolume(percent);
             }
         }
