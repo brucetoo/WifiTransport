@@ -224,13 +224,22 @@ public class SenderFragment extends Fragment implements View.OnClickListener {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            Log.i("WifiManagerUtils", "WifiReceiver -> receive wifi list action:" + action);
             if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(action)) {
                 //Handle wifi scan result
-                Log.i(TAG, "WifiReceiver -> receive list size:" + wifiManager.getScanResults().size());
-                List<ScanResult> scanResults = WifiManagerUtils.removeDuplicateWifiAp(wifiManager.getScanResults());
+                List<ScanResult> originList = wifiManager.getScanResults();
+                int size = originList.size();
+                Log.i("WifiManagerUtils", "WifiReceiver -> receive wifi list size:" + size);
+                if(size == 0){
+                    //scan wifi list again
+                    WifiManagerUtils.startScanWifiList(getActivity());
+                    return;
+                }
+                List<ScanResult> scanResults = WifiManagerUtils.removeDuplicateWifiAp(originList);
                 for (ScanResult result : scanResults) {
                     //TODO add wifi filter
-                    if (result.SSID.equals("brucetoo")) {
+                    Log.i("WifiManagerUtils", "onReceive: " + result.SSID);
+                    if (result.SSID.equals(ReceiverFragment.WIFI_NAME)) {
                         mTextClient.setVisibility(View.VISIBLE);
                         mTextClient.setText(result.SSID);
                         mCurrentResult = result;

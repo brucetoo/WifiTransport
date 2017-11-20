@@ -39,13 +39,14 @@ import java.util.List;
  * Created by Bruce Too
  * On 7/7/16.
  * At 11:17
+ * Create wifi ap
  */
 public class ReceiverFragment extends Fragment implements View.OnClickListener {
 
     private final static String TAG = ReceiverFragment.class.getSimpleName();
     private static final String WIFI_AP_STATE_CHANGED_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED";
     public static final int FILE_REQUEST_ID = 1000;
-    private static final String WIFI_NAME = "brucetoo";
+    public static final String WIFI_NAME = "brucetoo";
 
     private TextView mTextName;
     private TextView mTextClient;
@@ -236,6 +237,7 @@ public class ReceiverFragment extends Fragment implements View.OnClickListener {
                 } else if (wifiState == 14) {//WIFI_AP_STATE_FAILED
                     Toast.makeText(getActivity(), "Create ap failed", Toast.LENGTH_SHORT).show();
                 }
+                Log.i(TAG, "create wifi ap result : " + wifiState);
             }
         }
     }

@@ -210,7 +210,7 @@ public class WifiManagerUtils {
     }
 
 
-    private static WifiConfiguration clearExistConfigure(WifiManager wifiManager, String SSID) {
+    private static WifiConfiguration getExistConfigure(WifiManager wifiManager, String SSID) {
 
         List<WifiConfiguration> existingConfigs = wifiManager.getConfiguredNetworks();
 
@@ -238,20 +238,36 @@ public class WifiManagerUtils {
 
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
-//        try {
         Log.i(TAG, "Connect wifi -> Result item: " + scanResult.toString());
 
-        WifiConfiguration tempConfig = clearExistConfigure(wifiManager, scanResult.SSID);
-        if (tempConfig != null) {
-            Log.i(TAG, "connectToWiFiAp clearExistConfigure");
-            wifiManager.removeNetwork(tempConfig.networkId);
+        WifiConfiguration temp = getExistConfigure(wifiManager, scanResult.SSID);
+        if(temp != null){
+            wifiManager.removeNetwork(temp.networkId);
         }
 
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
+        wifiConfiguration.allowedAuthAlgorithms.clear();
+        wifiConfiguration.allowedGroupCiphers.clear();
+        wifiConfiguration.allowedKeyManagement.clear();
+        wifiConfiguration.allowedPairwiseCiphers.clear();
+        wifiConfiguration.allowedProtocols.clear();
         wifiConfiguration.SSID = "\"" + scanResult.SSID + "\"";
-        wifiConfiguration.BSSID = scanResult.BSSID;
+        wifiConfiguration.hiddenSSID = true;
+        wifiConfiguration.status = WifiConfiguration.Status.ENABLED;
         wifiConfiguration.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        wifiConfiguration.hiddenSSID = false;
+//        Object actionListener = Proxy.newProxyInstance(context.getClassLoader(), new Class[]{(Reflecter.on("android.net.wifi.WifiManager$ActionListener").get())},
+//                new InvocationHandler() {
+//                    @Override
+//                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+//                        if("onSuccess".equals(method.getName())){
+//                            Log.i(TAG, "invoke: onSuccess");
+//                        }else {
+//                            Log.i(TAG, "invoke: onFailed -> " + args[0]);
+//                        }
+//                        return null;
+//                    }
+//                });
+//                Reflecter.on(wifiManager).call("connect", wifiConfiguration,actionListener);
 
         int netID = wifiManager.addNetwork(wifiConfiguration);
 
@@ -522,12 +538,12 @@ public class WifiManagerUtils {
      */
     public static void openSystemDefaultViewApp(Context context, String filePath) {
 
-        Intent intent = new Intent();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setAction(android.content.Intent.ACTION_VIEW);
-        File file = new File(filePath);
-        intent.setDataAndType(Uri.fromFile(file), getFileMIMEType(file));
-        context.startActivity(intent);
+//        Intent intent = new Intent();
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        intent.setAction(android.content.Intent.ACTION_VIEW);
+//        File file = new File(filePath);
+//        intent.setDataAndType(Uri.fromFile(file), getFileMIMEType(file));
+//        context.startActivity(intent);
 
     }
 
