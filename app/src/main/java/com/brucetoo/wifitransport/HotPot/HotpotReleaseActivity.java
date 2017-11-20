@@ -12,6 +12,10 @@ import com.brucetoo.wifitransport.R;
  * Created by Bruce Too
  * On 7/7/16.
  * At 10:42
+ * NOTE:
+ * 1.Some phone like 魅蓝 note 5 wifi list could be null if Location Service is off.
+ * 2.Android oreo change api {@link android.net.wifi.WifiManager#setWifiApEnable},
+ * please checkout source code,and try  {@link android.net.wifi.WifiManager#startLocalOnlyHotspot(LocalOnlyHotspotCallback)} instead
  */
 public class HotpotReleaseActivity extends FragmentActivity {
 
